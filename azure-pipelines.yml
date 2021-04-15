@@ -1,0 +1,52 @@
+# Docker image
+# Build a Docker image to deploy, run, or push to a container registry.
+# Add steps that use Docker Compose, tag images, push to a registry, run an image, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+
+variables:
+  imageName: 'p4a'
+  ANDROID_SDK_HOME: '/opt/android/android-sdk'
+  ANDROID_NDK_HOME: '/opt/android/android-ndk'
+  CRYSTAX_NDK_HOME: '/opt/android/crystax-ndk'
+
+jobs:
+- job: DockerBuild
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - script: docker build -f Dockerfile -t $(imageName) .
+    displayName: 'docker build'
+- job: DockerRun1
+  dependsOn: DockerBuild
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - script: docker run $(imageName) /bin/sh -c ". venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME)"
+- job: DockerRun2
+  dependsOn: DockerBuild
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  # overrides requirements to skip `peewee` pure python module, see:
+  # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
+  - script: docker run $(imageName) /bin/sh -c ". venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools"
+- job: DockerRun3
+  dependsOn: DockerBuild
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - script: docker run $(imageName) /bin/sh -c ". venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) --bootstrap sdl2 --requirements python2,numpy"
+- job: DockerRun4
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  dependsOn: DockerBuild
+  steps:
+  - script: docker run $(imageName) /bin/sh -c ". venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(CRYSTAX_NDK_HOME) --requirements python3crystax,setuptools,android,sdl2,pyjnius,kivy"
+- job: DockerRun5
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  dependsOn: DockerBuild
+  steps:
+  # builds only the recipes that moved
+  - script: docker run $(imageName) /bin/sh -c ". venv/bin/activate && ./ci/rebuild_updated_recipes.py"
