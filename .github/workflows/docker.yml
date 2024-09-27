@@ -18,7 +18,16 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: docker push
-        if: github.ref == 'develop'
+        if: github.ref == 'refs/heads/develop'
         run: |
           make docker/login
           make docker/push
+      - name: docker push (tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          DOCKER_TAG: ${GITHUB_REF#refs/tags/}
+        run: |
+          make docker/login
+          make docker/tag DOCKER_TAG=$DOCKER_TAG
+          # TODO: debugging
+          # make docker/push

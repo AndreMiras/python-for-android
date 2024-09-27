@@ -1,59 +1,57 @@
-name: Unit tests & build apps
+name: Custom build
 
-# TODO
-# on: ['push', 'pull_request']
-on: ['pull_request']
+on:
+  workflow_dispatch:
 
 env:
-  APK_ARTIFACT_FILENAME: bdist_unit_tests_app-debug-1.1.apk
-  AAB_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1.aab
-  AAR_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1.aar
+  # TODO
+  APK_ARTIFACT_FILENAME: bdist_custom_build-debug-1.1.apk
+  AAB_ARTIFACT_FILENAME: bdist_custom_build-release-1.1.aab
+  AAR_ARTIFACT_FILENAME: bdist_custom_build-release-1.1.aar
+  # TODO: needed?
   PYTHONFORANDROID_PREREQUISITES_INSTALL_INTERACTIVE: 0
 
 jobs:
 
-  flake8:
-    name: Flake8 tests
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout python-for-android
-      uses: actions/checkout@v4
-    - name: Set up Python 3.x
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.x
-    - name: Run flake8
-      run: |
-        python -m pip install --upgrade pip
-        pip install tox>=2.0
-        tox -e pep8
+  # TODO
+  # flake8:
+  #   name: Flake8 tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout python-for-android
+  #     uses: actions/checkout@v4
+  #   - name: Set up Python 3.x
+  #     uses: actions/setup-python@v5
+  #     with:
+  #       python-version: 3.x
 
-  test:
-    name: Pytest [Python ${{ matrix.python-version }} | ${{ matrix.os }}]
-    needs: flake8
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
-        os: [ubuntu-latest, macOs-latest]
-    steps:
-    - name: Checkout python-for-android
-      uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Tox tests
-      run: |
-        python -m pip install --upgrade pip
-        pip install tox>=2.0
-        make test
-    - name: Coveralls
-      uses: AndreMiras/coveralls-python-action@develop
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      with:
-        parallel: true
-        flag-name: run-${{ matrix.os }}-${{ matrix.python-version }}
+  # TODO
+  # test:
+  #   name: Pytest [Python ${{ matrix.python-version }} | ${{ matrix.os }}]
+  #   needs: flake8
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       python-version: ['3.11']
+  #       os: [ubuntu-latest]
+  #   steps:
+  #   - name: Checkout python-for-android
+  #     uses: actions/checkout@v4
+  #   - name: Set up Python ${{ matrix.python-version }}
+  #     uses: actions/setup-python@v4
+  #     with:
+  #       python-version: ${{ matrix.python-version }}
+  #   - name: Tox tests
+  #     run: |
+  #       python -m pip install --upgrade pip
+  #       pip install tox>=2.0
+  #       make test
+  #   - name: Coveralls
+  #     uses: AndreMiras/coveralls-python-action@develop
+  #     if: ${{ matrix.os == 'ubuntu-latest' }}
+  #     with:
+  #       parallel: true
+  #       flag-name: run-${{ matrix.os }}-${{ matrix.python-version }}
 
   ubuntu_build:
     name: Build test APP [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
@@ -63,6 +61,7 @@ jobs:
     strategy:
       matrix:
         runs_on: [ubuntu-latest]
+        # TODO
         bootstrap:
           - name: sdl2
             target: testapps-with-numpy
@@ -77,6 +76,7 @@ jobs:
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v4
+    # TODO: later we would pull from Docker hub
     - name: Build python-for-android docker image
       run: |
         docker build --tag=kivy/python-for-android .
@@ -105,6 +105,7 @@ jobs:
         name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-artifacts
         path: dist
 
+  # TODO: should we support both
   macos_build:
     name: Build test APP [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
     needs: [flake8]
@@ -251,4 +252,5 @@ jobs:
       run: sphinx-build -b linkcheck doc/source doc/build
     - name: Generate documentation
       run: sphinx-build doc/source doc/build
+
 
